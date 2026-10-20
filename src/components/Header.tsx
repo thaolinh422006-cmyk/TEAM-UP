@@ -165,39 +165,42 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
-      <div className="h-0.5 w-full bg-linear-to-r from-transparent via-[var(--primary-color)] to-transparent opacity-80" />
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors shadow-xs">
+      <div className="h-0.5 w-full bg-linear-to-r from-emerald-500 via-teal-400 to-emerald-600 opacity-90" />
       {/* Top row */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between h-16 gap-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between h-16 gap-2 sm:gap-4">
         {/* Brand & Project Selector */}
-        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-          <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 sm:gap-3.5 min-w-0">
+          {/* Brand Logo: Green icon + bold TEAM UP in green + subtitle */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 select-none">
             <div
-              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-md shrink-0 transition-colors"
-              style={{ background: 'linear-gradient(135deg, var(--primary-color), var(--primary-hover, #1e293b))' }}
+              className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0 bg-emerald-600 dark:bg-emerald-500"
             >
-              <Users2 className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Users2 className="w-5 h-5 text-white" />
             </div>
-            <div className="hidden xs:block">
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900 dark:text-white">
-                  TEAM<span style={{ color: 'var(--primary-color)' }}>UP</span>
-                </span>
-                <span className="text-[9px] sm:text-[10px] uppercase font-bold px-1.5 py-0.2 sm:py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hidden sm:inline-block">
-                  Workspace
-                </span>
-              </div>
+            <div className="flex flex-col justify-center">
+              <span
+                className="font-black text-base sm:text-xl tracking-tight leading-none text-emerald-600 dark:text-emerald-400"
+              >
+                TEAM UP
+              </span>
+              <span className="text-[10px] sm:text-[11px] font-semibold text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
+                Không gian làm việc nhóm
+              </span>
             </div>
           </div>
 
+          {/* Divider between brand and project selector */}
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-0.5 hidden sm:block shrink-0" />
+
           {/* Project Switcher Dropdown */}
-          <div className="relative min-w-0" ref={projectMenuRef}>
+          <div className="relative shrink min-w-0" ref={projectMenuRef}>
             <button
               id="btn-header-project-selector"
               type="button"
               onClick={() => setShowProjectMenu(!showProjectMenu)}
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-800/60 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 text-xs font-bold transition-colors cursor-pointer max-w-[130px] sm:max-w-[200px] md:max-w-[260px]"
-              title="Đổi dự án hoặc tạo nhóm mới"
+              title="Dự án hiện tại"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse" />
               <span className="truncate">{activeProject.name}</span>
@@ -262,7 +265,7 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         {/* Right Actions: Add Member, Theme, Dark Mode, Profile */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
           {/* Add Member Button */}
           {onOpenAddMemberModal && (
             <button
@@ -270,26 +273,25 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onOpenAddMemberModal}
               title="Thêm hoặc mời thành viên vào nhóm này"
-              style={{ backgroundColor: 'var(--primary-color)' }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white transition-all shadow-xs hover:opacity-90 cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-xs cursor-pointer shrink-0"
             >
               <UserPlus className="w-4 h-4" />
-              <span className="hidden md:inline">Thêm Thành Viên</span>
-              <span className="md:hidden">Mời</span>
+              <span className="hidden sm:inline">Thêm Thành Viên</span>
+              <span className="sm:hidden">Mời</span>
             </button>
           )}
 
           {/* Theme Color Picker */}
-          <div className="relative">
+          <div className="relative shrink-0">
             <button
               id="btn-theme-picker"
               type="button"
               onClick={() => setShowThemeMenu(!showThemeMenu)}
               title="Bộ sưu tập màu pastel & giao diện"
-              className="p-2 rounded-lg border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer"
+              className="px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors flex items-center gap-1.5 cursor-pointer text-xs font-bold shrink-0"
             >
-              <Palette className="w-4 h-4" />
-              <span className="hidden xl:inline text-xs font-medium">Bảng màu Pastel</span>
+              <Palette className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="hidden sm:inline">Bảng màu Pastel</span>
             </button>
 
             {showThemeMenu && (
@@ -428,17 +430,19 @@ export const Header: React.FC<HeaderProps> = ({
             {isDarkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Quick Switch / Logout Button for Easy Multi-account Testing */}
+          {/* Logout Button */}
           <button
             id="btn-header-quick-switch-account"
             type="button"
-            onClick={() => setShowAccountModal(true)}
-            title="Đăng xuất hoặc chuyển đổi tài khoản (test link ?join=email)"
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+            onClick={() => {
+              if (onLogoutToAdmin) onLogoutToAdmin();
+              else setShowAccountModal(true);
+            }}
+            title="Đăng xuất tài khoản hiện tại"
+            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/70 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 text-xs font-bold transition-all cursor-pointer shadow-2xs"
           >
-            <ArrowLeftRight className="w-3.5 h-3.5 text-indigo-500" />
-            <span className="hidden sm:inline">Đăng xuất / Đổi tài khoản</span>
-            <span className="sm:hidden">Đổi tài khoản</span>
+            <LogOut className="w-3.5 h-3.5 text-rose-500" />
+            <span>Đăng xuất</span>
           </button>
 
           {/* Current User with Role Indicator & Role Switcher */}

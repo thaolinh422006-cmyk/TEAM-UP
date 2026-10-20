@@ -79,17 +79,69 @@ export default function App() {
   const MOCK_MEMBER_NAMES = ['Minh Hoàng', 'Khánh Vy', 'Bảo Long', 'TS. Nguyễn Văn Hùng'];
 
   const [projects, setProjects] = useState<Project[]>(() => {
+    let savedMembers: Member[] = [];
     if (typeof window !== 'undefined') {
-      try {
-        // Enforce 1 single real project and remove old virtual slides
-        localStorage.setItem('teamup_projects', JSON.stringify(INITIAL_PROJECTS));
-        localStorage.setItem('teamup_active_project_id', INITIAL_PROJECTS[0].id);
-        localStorage.removeItem('teamup_presentation');
-      } catch (e) {
-        console.error('Failed to sync project', e);
+      const saved = localStorage.getItem('teamup_projects');
+      if (saved) {
+        try {
+          const parsed: Project[] = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            const mainProj = parsed.find((p) => p.id === 'proj_1') || parsed[0];
+            if (mainProj && Array.isArray(mainProj.members)) {
+              savedMembers = mainProj.members;
+            }
+          }
+        } catch (e) {
+          console.error('Failed to parse saved projects', e);
+        }
       }
     }
-    return INITIAL_PROJECTS;
+
+    const memberMap = new Map<string, Member>();
+
+    // 1. Check if user is stored in localStorage
+    let storedUser: Member | null = null;
+    if (typeof window !== 'undefined') {
+      try {
+        const uSaved = localStorage.getItem('teamup_current_user');
+        if (uSaved) storedUser = JSON.parse(uSaved);
+      } catch {}
+    }
+    const realUser = storedUser || CURRENT_USER;
+    const realUserKey = (realUser.email || realUser.id).toLowerCase();
+    memberMap.set(realUserKey, realUser);
+
+    // 2. Add saved members from localStorage
+    savedMembers.forEach((m) => {
+      if (!m) return;
+      const key = (m.email || m.id).toLowerCase();
+      if (!memberMap.has(key)) {
+        memberMap.set(key, m);
+      }
+    });
+
+    // 3. Ensure the 4 demo members are always present
+    DEMO_MEMBERS.forEach((dm) => {
+      const key = (dm.email || dm.id).toLowerCase();
+      if (!memberMap.has(key)) {
+        memberMap.set(key, dm);
+      }
+    });
+
+    const singleProject: Project = {
+      ...INITIAL_PROJECTS[0],
+      members: Array.from(memberMap.values()),
+    };
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('teamup_projects', JSON.stringify([singleProject]));
+        localStorage.setItem('teamup_active_project_id', singleProject.id);
+        localStorage.removeItem('teamup_presentation');
+      } catch {}
+    }
+
+    return [singleProject];
   });
 
   const [activeProjectId, setActiveProjectId] = useState<string>(INITIAL_PROJECTS[0].id);
@@ -109,25 +161,36 @@ export default function App() {
 
   // Persist tasks in localStorage so assigned members and status are never lost
   const [tasks, setTasks] = useState<Task[]>(() => {
+    let savedTasks: Task[] = [];
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('teamup_tasks');
       if (saved) {
         try {
           const parsed: Task[] = JSON.parse(saved);
-          const cleaned = parsed.filter(
-            (t) =>
-              !MOCK_TASK_IDS.includes(t.id) &&
-              !MOCK_PROJECT_IDS.includes(t.projectId) &&
-              !MOCK_MEMBER_IDS.includes(t.assigneeId || '')
-          );
-          localStorage.setItem('teamup_tasks', JSON.stringify(cleaned));
-          return cleaned;
+          if (Array.isArray(parsed)) {
+            savedTasks = parsed.filter(
+              (t) => t.projectId === 'proj_1' || !t.projectId
+            );
+          }
         } catch (e) {
           console.error('Failed to parse saved tasks', e);
         }
       }
     }
-    return INITIAL_TASKS;
+
+    const taskMap = new Map<string, Task>();
+    // First load all 7 demo completed tasks
+    INITIAL_TASKS.forEach((t) => taskMap.set(t.id, t));
+    // Overlay any saved tasks
+    savedTasks.forEach((t) => taskMap.set(t.id, t));
+
+    const finalTasks = Array.from(taskMap.values());
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem('teamup_tasks', JSON.stringify(finalTasks));
+      } catch {}
+    }
+    return finalTasks;
   });
 
   useEffect(() => {
@@ -226,14 +289,14 @@ export default function App() {
     }
   }, [presentation]);
 
-  // Current logged in user (with localStorage persistence)
+  // Current logged in user (strictly loaded from localStorage 'teamup_current_user')
   const [currentUser, setCurrentUser] = useState<Member>(() => {
     if (typeof window !== 'undefined') {
       try {
         const saved = localStorage.getItem('teamup_current_user');
         if (saved) {
           const parsed = JSON.parse(saved);
-          if (parsed && (parsed.email || parsed.id === 'usr_me')) {
+          if (parsed && (parsed.email || parsed.name || parsed.id)) {
             return parsed;
           }
         }
@@ -243,6 +306,34 @@ export default function App() {
     }
     return CURRENT_USER;
   });
+
+  // Ensure real logged-in currentUser is always present in project members
+  useEffect(() => {
+    if (currentUser && (currentUser.email || currentUser.id)) {
+      setProjects((prev) =>
+        prev.map((p) => {
+          const key = (currentUser.email || currentUser.id).toLowerCase();
+          const exists = p.members.some(
+            (m) => (m.email && m.email.toLowerCase() === key) || m.id === currentUser.id
+          );
+          if (exists) {
+            return {
+              ...p,
+              members: p.members.map((m) =>
+                (m.email && m.email.toLowerCase() === key) || m.id === currentUser.id
+                  ? { ...m, ...currentUser }
+                  : m
+              ),
+            };
+          }
+          return {
+            ...p,
+            members: [currentUser, ...p.members],
+          };
+        })
+      );
+    }
+  }, [currentUser]);
 
   // Automatically show popup "Nhập Gmail của bạn để tham gia dự án" if no account is in localStorage
   const [isJoinByGmailModalOpen, setIsJoinByGmailModalOpen] = useState<boolean>(() => {
